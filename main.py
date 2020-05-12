@@ -1,6 +1,8 @@
 """Main api initial"""
 from enum import Enum
-from fastapi import FastAPI
+from typing import List
+from fastapi import FastAPI, Query
+from pydantic import BaseModel
 import uvicorn
 
 
@@ -8,6 +10,13 @@ class ModelName(str, Enum):
     alexnet = 'alexnet'
     resnet = 'resnet'
     lenet = 'lenet'
+
+
+class Item(BaseModel):
+    name: str
+    description: str = None
+    price: float
+    tax: float = None
 
 
 app = FastAPI()
@@ -19,8 +28,14 @@ async def root():
     return {'message': 'Hello world'}
 
 
+@app.post('/items')
+async def create_item(item: Item):
+    return item
+
+
 @app.get('/items/{item_id}')
-async def read_item(item_id: int, q: str = None):
+async def read_item(item_id: int, q: str = Query(None, min_length=3, max_length=50, title='Query title string',
+                                                 description='Description string')):
     if q:
         return {'item_id': item_id, 'q': q}
     return {'item_id': item_id}
